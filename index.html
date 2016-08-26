@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>My Fav Places</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>My Favorite Places</h1>
+    <div id="pano"></div>
+    <div id="map"></div>
+    <div id="menu"></div>
+
+    <script>
+
+    var myPlaces = [
+      {
+        name: "Home",
+        address: "#206-2280 Wesbrook Mall, Vancouver, BC V6T 2K3",
+        lat: 49.263,
+        lng: -123.242,
+        description: "Home"
+      },
+      {
+        name: "Lighthouse labs",
+        address: "128 W Hastings St #300, Vancouver, BC V6B 1G9",
+        lat: 49.282,
+        lng: -123.108,
+        description: "Lighthouse labs"
+      },
+      {
+        name: "Brockton Point Lighthouse",
+        address: "Stanley Park somewhere...",
+        lat: 49.380,
+        lng: -122.940,
+        description: "A lighthouse in Stanley Park"
+      }
+    ];
+
+    var map;
+    var pano;
+    var markers = [];
+    var myLatLng = {lat: 49.283, lng: -123.12};
+
+    function initMap() {
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 11,
+        center: myLatLng
+      });
+
+      // map.addListener('click', function(e) {
+      //   placeMarkerAndPanTo(e.latLng, map);
+      // });
+
+      var sv = new google.maps.StreetViewService();
+
+      sv.getPanorama({location: myLatLng, radius: 50}, processSVData);
+
+      var panoOptions = {
+        navigationControl: true,
+        position: myLatLng
+      }
+
+      pano = new google.maps.StreetViewPanorama(document.getElementById('pano'), panoOptions);
+
+      // infowindow = new google.maps.InfoWindow({
+      //   content: "holding..."
+      // });
+
+      // for (var i = 0; i < markers.length; i++) {
+      //   var marker = markers[i];
+      //   google.maps.event.addListener(marker, 'click', function () {
+      //   // where I have added .html to the marker object.
+      //     infowindow.setContent(this.html);
+      //     infowindow.open(map, this);
+      //   });
+      // }
+
+
+
+      myPlaces.forEach(function(place){
+        var marker = new google.maps.Marker({
+          position: { lat: place.lat, lng: place.lng },
+          map: map
+        });
+        markers.push(marker);
+
+        var infoContent = "<div class='content'>" +
+          '<h4>' + place.name + ' | ' + place.address + '</h4>' +
+          '</div>';
+
+        var infoWindow = new google.maps.InfoWindow({
+           content: infoContent
+        });
+
+        marker.addListener("click", function(){
+          map.panTo(marker.position);
+          infoWindow.open(map, marker);
+          sv.getPanorama({location: marker.position, radius: 50}, processSVData)
+        });
+      })
+
+      addList();
+
+    }
+    function processSVData(data, status){
+      if (status === google.maps.StreetViewStatus.OK){
+        pano.setPano(data.location.pano);
+        pano.setPov({
+          heading: 270,
+          pitch: 0
+        });
+        pano.setVisible(true);
+      }
+    }
+
+    function addList(){
+      var $list = $("<ul></ul>");
+      myPlaces.forEach(function(place){
+        $list.append("<li>" + place.description + "</li>");
+      });
+      $("#menu").append($list);
+    }
+
+
+    // function placeMarkerAndPanTo(latLng, map) {
+    //   var marker = new google.maps.Marker({
+    //     position: latLng,
+    //     map: map,
+    //     draggable: true,
+    //     clickable: true,
+    //     animation: google.maps.Animation.DROP
+    //   });
+    //   map.panTo(latLng);
+    //     google.maps.event.addListener(marker, 'click', function() {
+    //       infoWindow.open(map, marker);
+    //     });
+    // }
+
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_LR8k55h4mfoG4OkwX_-TnG8It5z796A&callback=initMap">
+    </script>
+  </body>
+</html>
